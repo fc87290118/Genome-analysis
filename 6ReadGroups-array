@@ -1,0 +1,28 @@
+#!/bin/bash
+#SBATCH -A OD-224622
+#SBATCH --job-name=Blind-pun
+#SBATCH --nodes=1
+#SBATCH --ntasks=10
+#SBATCH --time=5:00:00
+#SBATCH --mem=20gb
+#SBATCH --array=2-49
+#SBATCH --dependency=singleton
+
+module load picard
+
+bam=$(sed -n ${SLURM_ARRAY_TASK_ID}p /scratch1/fan048/Amanda_AGRF/arm_bam/bam/ReadGroups/marked_bam.txt)
+RG=$(sed -n ${SLURM_ARRAY_TASK_ID}p /scratch1/fan048/Amanda_AGRF/arm_bam/bam/ReadGroups/RG_arm.txt)
+
+if [[ -z $bam ]]; then
+   echo SLURM_ARRAY_TASK_ID is out of range
+   exit 1
+fi
+
+bam2=${bam%_out.vcf}-RG.bam
+
+echo $bam
+echo $bam2
+echo $RG
+
+AddOrReplaceReadGroups I=$bam O=$bam2 SORT_ORDER=coordinate RGID=$RG RGLB=$RG RGPL=illumina RGSM=$RG RGPU=run CREATE_INDEX=true
+
