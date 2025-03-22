@@ -1,0 +1,26 @@
+#!/bin/bash
+#SBATCH -A OD-224622
+#SBATCH --job-name=Blind-sort
+#SBATCH --nodes=1
+#SBATCH --ntasks=10
+#SBATCH --time=1:59:00
+#SBATCH --mem=40gb
+#SBATCH --array=1-49
+#SBATCH --dependency=singleton
+
+module load samtools
+module load picard
+
+bam=$(sed -n ${SLURM_ARRAY_TASK_ID}p /scratch1/fan048/Amanda_AGRF/arm_bam/bam/bam.txt)
+
+if [[ -z $bam ]]; then
+   echo SLURM_ARRAY_TASK_ID is out of range1
+   exit 1
+fi
+
+bam2=${bam%_out.vcf}-sort.bam
+
+echo $bam
+echo $bam2
+
+SortSam I=$bam O=$bam2 SORT_ORDER=coordinate CREATE_INDEX=TRUE
