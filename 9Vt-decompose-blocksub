@@ -1,0 +1,33 @@
+#!/bin/bash
+#SBATCH -A OD-224622
+#SBATCH --job-name=vtDB
+#SBATCH --nodes=1
+#SBATCH --ntasks=48
+#SBATCH --mem=64gb
+#SBATCH --time=01:00:00
+#SBATCH --out %A_%a.out
+#SBATCH --array=2-49
+#SBATCH --mail-type=FAIL
+#SBATCH --mail-user=grace.fang@csiro.au
+#SBATCH --dependency=singleton
+
+# load required modules
+module load vt/0.57721
+module load htslib/
+
+# Update the below to be specific for each run:
+################################
+sample=$(sed -n ${SLURM_ARRAY_TASK_ID}p /scratch1/fan048/Amanda_AGRF/arm_bam/bam/freebayes/samples.list)
+input_dir=/scratch1/fan048/Amanda_AGRF/arm_bam/bam/bcftool-norm
+output_dir=/scratch1/fan048/Amanda_AGRF/arm_bam/bam/vtDB
+
+echo '======'
+echo ${sample}
+echo ${input_dir}
+echo ${output_dir}
+echo '======'
+
+vt decompose_blocksub -a -m -p -o ${output_dir}/${sample}-Ha.bam-sort.bam-marked.bam-RG.bam-Ha-freebayes.vcf.gz-norm.vcf.gz-DBS.vcf ${input_dir}/${sample}-Ha.bam-sort.bam-marked.bam-RG.bam-Ha-freebayes.vcf.gz-norm.vcf.gz
+
+bgzip ${output_dir}/${sample}-Ha.bam-sort.bam-marked.bam-RG.bam-Ha-freebayes.vcf.gz-norm.vcf.gz-DBS.vcf
+tabix ${output_dir}/${sample}-Ha.bam-sort.bam-marked.bam-RG.bam-Ha-freebayes.vcf.gz-norm.vcf.gz-DBS.vcf.gz
