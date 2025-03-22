@@ -1,0 +1,45 @@
+#!/bin/bash
+#SBATCH -A OD-224622
+#SBATCH --job-name=CompressAndIndexVCF
+#SBATCH --nodes=1
+#SBATCH --ntasks=4
+#SBATCH --time=00:30:00
+#SBATCH --output=CompressAndIndexVCF_%A_%a.log
+#SBATCH --error=CompressAndIndexVCF_%A_%a.err
+#SBATCH --mem=24GB
+#SBATCH -a 1
+#SBATCH --qos=express
+
+module load htslib
+module load samtools
+
+# Update the below to be specific for each run:
+################################
+sample=$(sed -n ${SLURM_ARRAY_TASK_ID}p /scratch1/fan048/Amanda_AGRF/arm_bam/bam/freebayes/samples.list)
+input_dir=/scratch1/fan048/Amanda_AGRF/arm_bam/bam/ReadGroups
+output_dir=/scratch1/fan048/Amanda_AGRF/arm_bam/bam/freebayes
+
+################################
+
+echo '======'
+echo ${sample}
+echo ${input_dir}
+echo ${output_dir}
+echo '======'
+
+###############################
+
+
+bgzip ${input_dir}/${sample}-Ha.bam-sort.bam-marked.bam-RG.bam-Ha-freebayes.vcf
+tabix ${input_dir}/${sample}-Ha.bam-sort.bam-marked.bam-RG.bam-Ha-freebayes.vcf.gz
+
+
+
+#bwa-mem2 index ${reference}
+
+#bwa-mem2 mem -t ${SLURM_NTASKS} -o ${output_dir}/${sample}.sam -R "@RG\tID:${sample}\tSM:${sample}" ${reference} ${input_dir}/${sample}.trim.R1.fastq.gz ${input_dir}/${sample}.trim.R2.fastq.gz
+
+#samtools sort -@ ${SLURM_NTASKS} -O BAM --write-index -o ${output_dir}/${sample}.sort.bam ${output_dir}/${sample}.sam
+#rm ${output_dir}/${sample}.sam
+
+#bcftools mpileup -f ${reference} ${output_dir}/${sample}.sort.bam | bcftools call  -o ${output_dir}/${sample}.call.vcf
