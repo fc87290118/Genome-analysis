@@ -1,0 +1,35 @@
+#!/bin/bash
+#SBATCH -A OD-224622
+#SBATCH --job-name=Ha.snpEff
+#SBATCH --time=1-00:00:00
+#SBATCH --out %A_%a.out
+#SBATCH --mem=64gb
+#SBATCH --ntasks=16
+#SBATCH --array=1
+#SBATCH --mail-type=FAIL
+#SBATCH --mail-user=grace.fang@csiro.au
+#SBATCH --dependency=singleton
+
+
+# load required modules
+module load snpeff/5.0e
+module load htslib
+
+
+# Update the below to be specific for each run:
+################################
+sample=$(sed -n ${SLURM_ARRAY_TASK_ID}p /scratch3/fan048/scratch1/Amanda_AGRF/arm_bam/bam/freebayes/samples.list)
+input_dir=/scratch3/fan048/scratch1/Amanda_AGRF/arm_bam/bam/vtDB
+output_dir=/scratch3/fan048/scratch1/Amanda_AGRF/arm_bam/bam/snpEff
+
+echo '======'
+echo ${sample}
+echo ${input_dir}
+echo ${output_dir}
+echo ${input_dir}/${sample}-Ha.bam-sort.bam-marked.bam-RG.bam-Ha-freebayes.vcf.gz-norm.vcf.gz-DBS.vcf.gz
+echo '======'
+
+snpEff Harmigera -c /datasets/work/lw-moth-genom/work/Amanda/snpEff.config -stats ${sample}.txt -htmlStats ${sample}.html -nodownload -dataDir /datasets/work/lw-moth-genom/work/Amanda/data/ -v ${input_dir}/${sample}-Ha.bam-sort.bam-marked.bam-RG.bam-Ha-freebayes.vcf.gz-norm.vcf.gz-DBS.vcf.gz > ${output_dir}/${sample}-Ha.bam-sort.bam-marked.bam-RG.bam-Ha-freebayes.vcf.gz-norm.vcf.gz-DBS.vcf.gz-snpEff.vcf
+
+bgzip -f ${output_dir}/${sample}-Ha.bam-sort.bam-marked.bam-RG.bam-Ha-freebayes.vcf.gz-norm.vcf.gz-DBS.vcf.gz-snpEff.vcf
+tabix -f ${output_dir}/${sample}-Ha.bam-sort.bam-marked.bam-RG.bam-Ha-freebayes.vcf.gz-norm.vcf.gz-DBS.vcf.gz-snpEff.vcf.gz
