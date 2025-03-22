@@ -1,0 +1,28 @@
+#!/bin/bash
+#SBATCH -A OD-224622
+#SBATCH --job-name=Ha.freebayes
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --time=1-00:00:00
+#SBATCH --out %A_%a.out
+#SBATCH --array=2-49
+#SBATCH --dependency=singleton
+
+module load samtools
+module load python
+module load freebayes/1.3.5
+
+bam=$(sed -n ${SLURM_ARRAY_TASK_ID}p /scratch1/fan048/Amanda_AGRF/arm_bam/bam/freebayes/RG.bam.txt)
+
+if [[ -z $bam ]]; then
+   echo SLURM_ARRAY_TASK_ID is out of range1
+   exit 1
+fi
+
+vcf=${bam%_out.bam}-Ha-freebayes.vcf 
+
+
+echo $bam
+echo $vcf
+
+freebayes -f /datasets/work/lw-moth-genom/work/Amanda/Genome/HaChr-all-r-11-08-2017.fa -p 2 $bam --exclude-unobserved-genotypes > $vcf
