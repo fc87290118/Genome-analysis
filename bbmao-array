@@ -1,0 +1,33 @@
+#!/bin/bash
+#SBATCH -A OD-224622
+#SBATCH --job-name=ANIC
+#SBATCH --nodes=1
+#SBATCH --ntasks=16
+#SBATCH --time=2-00:00:00
+#SBATCH --out %A_%a.out
+#SBATCH --mem=64gb
+#SBATCH --array=2-49
+#SBATCH --dependency=singleton
+
+module load bbmap
+module load samtools
+
+in=$(sed -n ${SLURM_ARRAY_TASK_ID}p /datasets/work/lw-moth-genom/work/Amanda/2223Season/AGRF_CAGRF230113346-1_H3LY2DSX7/r1.txt)
+in2=$(sed -n ${SLURM_ARRAY_TASK_ID}p /datasets/work/lw-moth-genom/work/Amanda/2223Season/AGRF_CAGRF230113346-1_H3LY2DSX7/r2.txt)
+
+if [[ -z $in ]]; then
+   echo SLURM_ARRAY_TASK_ID is out of range1
+   exit 1
+fi
+if [[ -z $in2 ]]; then
+   echo SLURM_ARRAY_TASK_ID is out of range2
+   exit 1
+fi
+
+bam=$(sed -n ${SLURM_ARRAY_TASK_ID}p /scratch1/fan048/Amanda_AGRF/arm_bam/arm_bam_output.txt)
+
+echo $in
+echo $in2
+echo $bam
+
+bbmap.sh in=$in in2=$in2 out=$bam ref=/datasets/work/lw-moth-genom/work/Amanda/Genome/HaChr-all-r-11-08-2017.fa maxindel=1000 
