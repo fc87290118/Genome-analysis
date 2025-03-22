@@ -1,0 +1,26 @@
+#!/bin/bash
+#SBATCH -A OD-224622
+#SBATCH --job-name=mark
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --time=1-00:00:00
+#SBATCH --mem=20gb
+#SBATCH --array=2-49
+#SBATCH --dependency=singleton
+
+bam=$(sed -n ${SLURM_ARRAY_TASK_ID}p /scratch1/fan048/Amanda_AGRF/arm_bam/bam/markdupx/sort-Grace.txt)
+
+if [[ -z $bam ]]; then
+   echo SLURM_ARRAY_TASK_ID is out of range1
+   exit 1
+fi
+
+bam2=${bam%_out.vcf}-marked.bam 
+txt=${bam%_out.vcf}-marked.txt 
+
+echo $bam
+echo $bam2
+echo $txt
+
+module load picard 
+MarkDuplicates I=$bam O=$bam2 M=$txt REMOVE_DUPLICATES=true
